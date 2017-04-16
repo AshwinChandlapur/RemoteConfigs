@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">RemoteConfigs</string>
+
+    <string name="fetch_remote_welcome_message">Lets Work On It!</string>
+</resources>
