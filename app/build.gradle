@@ -10,6 +10,13 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        android {
+            defaultConfig {
+                manifestPlaceholders = [onesignal_app_id               : "2242a4b6-2f82-4604-891b-d333f1dab518",
+                                        // Project number pulled from dashboard, local value is ignored.
+                                        onesignal_google_project_number: "419853583042"]
+            }
+        }
     }
     buildTypes {
         release {
@@ -24,10 +31,18 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
+
+    // Required for OneSignal, even if you have added FCM.
+
+    // Required for geotagging
     compile 'com.android.support:appcompat-v7:25.2.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.google.firebase:firebase-core:10.0.1'
     compile 'com.google.firebase:firebase-config:10.0.1'
+    compile 'com.onesignal:OneSignal:3.+@aar'
+    compile 'com.google.android.gms:play-services-gcm:10.0.1'
+    compile 'com.google.android.gms:play-services-location:10.0.1'
+    compile 'com.squareup.picasso:picasso:2.5.2'
     testCompile 'junit:junit:4.12'
 }
 apply plugin: 'com.google.gms.google-services'

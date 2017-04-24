@@ -1,8 +1,10 @@
 package vadeworks.remoteconfigs;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -12,6 +14,11 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
+import com.onesignal.OSNotificationAction;
+import com.onesignal.OSNotificationOpenResult;
+import com.onesignal.OneSignal;
+
+import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,7 +36,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+       // OneSignal.setLogLevel(OneSignal.LOG_LEVEL.DEBUG, OneSignal.LOG_LEVEL.DEBUG);
+        //OneSignal.startInit(this).init();
+        OneSignal.startInit(this)
+                .setNotificationOpenedHandler(new ExampleNotificationOpenedHandler())
+                .init();
         mWelcomeTextView = (TextView) findViewById(R.id.welcomeTextView);
 
         Button fetchButton = (Button) findViewById(R.id.fetchButton);
@@ -66,6 +77,51 @@ public class MainActivity extends AppCompatActivity {
         fetchWelcome();
     }
 
+
+    private class ExampleNotificationOpenedHandler implements OneSignal.NotificationOpenedHandler {
+        // This fires when a notification is opened by tapping on it.
+        @Override
+        public void notificationOpened(OSNotificationOpenResult result) {
+            OSNotificationAction.ActionType actionType = result.action.type;
+            JSONObject data = result.notification.payload.additionalData;
+            String bigText;
+           // bigText = data.optString("bigText", null);
+            String imgUrl;
+            //imgUrl = data.optString("imgUrl",null);
+
+            if (data != null) {
+                bigText = data.optString("bigText", null);
+                imgUrl = data.optString("imgUrl",null);
+                Intent intent = new Intent(getApplicationContext(), notifHandler.class);
+                intent.putExtra("bigText", bigText);
+                intent.putExtra("imgUrl", imgUrl);
+                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                if (bigText != null)
+                    Log.i("OneSignalExample", "customkey set with value: " + bigText);
+                if (imgUrl != null)
+                    Log.i("OneSignalExample", "customkey set with value: " + imgUrl);
+                data.remove(bigText);//This is mandatory, because the Old JSON data will still be stored that causes error while opening newest notification
+                data.remove(imgUrl);//
+            }
+
+            if (actionType == OSNotificationAction.ActionType.ActionTaken)
+                Log.i("OneSignalExample", "Button pressed with id: " + result.action.actionID);
+
+            // The following can be used to open an Activity of your choice.
+
+
+
+            // Add the following to your AndroidManifest.xml to prevent the launching of your main Activity
+            //  if you are calling startActivity above.
+         /*
+            <application ...>
+              <meta-data android:name="com.onesignal.NotificationOpened.DEFAULT" android:value="DISABLE" />
+            </application>
+         */
+        }
+    }
+
     /**
      * Fetch a welcome message from the Remote Config service, and then activate it.
      */
@@ -89,15 +145,15 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
-                            Toast.makeText(MainActivity.this, "Fetch Succeeded",
-                                    Toast.LENGTH_SHORT).show();
+                           // Toast.makeText(MainActivity.this, "Fetch Succeeded",
+                             //       Toast.LENGTH_SHORT).show();
 
                             // After config data is successfully fetched, it must be activated before newly fetched
                             // values are returned.
                             mFirebaseRemoteConfig.activateFetched();
                         } else {
-                            Toast.makeText(MainActivity.this, "Fetch Failed",
-                                    Toast.LENGTH_SHORT).show();
+                           // Toast.makeText(MainActivity.this, "Fetch Failed",
+                           //         Toast.LENGTH_SHORT).show();
                         }
                         displayWelcomeMessage();
                     }
@@ -121,5 +177,8 @@ public class MainActivity extends AppCompatActivity {
         }
         mWelcomeTextView.setText(welcomeMessage);
     }
-    // [END display_welcome_message]
+
+
+
+
 }
